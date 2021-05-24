@@ -12,7 +12,23 @@ int main()
   cout << a << '\n';
   cout << m << '\n';
   cout << c << '\n';
+  
   cout << m + c << '\n';
-  cout << Matrix<int>::identity(6) << '\n';
+  cout << 4 * Matrix<int>::identity(6) << '\n';
 
+  cout << a[0][0] << '\n' << '\n';
+  cout << Matrix<int>::identity(4) << '\n';
+  cout << Matrix<int>::identity(4).subMatRemove(1, 0) << '\n';
+
+  Matrix<double> test ({{1, 2, 3}, {3, 2, 7}, {1, 2, 5}});
+  cout << determinant(test) << "\n\n";
+
+  Matrix<int> hello(
+    {
+      {1, 2, 3, 4}, 
+      {5, 6, 7, 8}
+    }
+  );
+  cout << hello.transpose() << '\n';
 }
+

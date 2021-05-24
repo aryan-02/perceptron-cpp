@@ -18,6 +18,14 @@ struct invalidMatrixShapeAdd : public exception
    }
 };
 
+struct invalidMatrixShapeDet : public exception
+{
+   const char * what () const throw ()
+   {
+      return "Invalid Matrix Shape for Determinant";
+   }
+};
+
 
 template <typename T>
 class Matrix
@@ -39,6 +47,19 @@ class Matrix
       rows = v.size();
       cols = (rows != 0) ? v[0].size() : 0;
       data = v;
+    }
+
+    Matrix<T> transpose()
+    {
+      Matrix res{cols, rows};
+      for(int r = 0; r < rows; r++)
+      {
+        for(int c = 0; c < cols; c++)
+        {
+          res.data[c][r] = data[r][c];
+        }
+      }
+      return res;
     }
 
     static Matrix<T> identity(int n)
@@ -65,17 +86,61 @@ class Matrix
       return res;
     }
 
-    void scale(T factor)
+    vector<T>& operator[] (int idx)
     {
-      for(int r = 0; r < rows; r++)
+      if(idx >= data.size())
       {
-        for(int c = 0; c < cols; c++)
+        throw std::out_of_range("Matrix index out of range.");
+      }
+      else{
+        return data[idx];
+      }
+    }
+
+    // Return a matrix where row R and column C are removed
+    // Useful for determinants
+    Matrix<T> subMatRemove(int R, int C)
+    {
+      if(R >= rows or C >= cols)
+      {
+        throw std::out_of_range("Submatrix remove index out of range.");
+      }
+      else
+      {
+        vector<vector<T>> res;
+        for(int r = 0; r < rows; r++)
         {
-          data[r][c] *= factor;
+          if(r != R)
+          {
+            vector<T> curr_row;
+            for(int c = 0; c < cols; c++)
+            {
+              if(c != C)
+              {
+                curr_row.push_back(data[r][c]);
+              }
+            }
+            res.push_back(curr_row);
+          }
         }
+        return Matrix(res);
       }
     }
 };
+
+template<typename T>
+Matrix<T> scale(Matrix<T> mat, T factor)
+{
+  Matrix<T> res{mat.rows, mat.cols};
+  for(int r = 0; r < mat.rows; r++)
+  {
+    for(int c = 0; c < mat.cols; c++)
+    {
+      res.data[r][c] = mat.data[r][c] * factor;
+    }
+  }
+  return res;
+}
 
 template<typename T>
 Matrix<T> multiply(Matrix<T> a, Matrix<T> b)
@@ -108,7 +173,7 @@ Matrix<T> multiply(Matrix<T> a, Matrix<T> b)
 template<typename T>
 Matrix<T> add(Matrix<T> a, Matrix<T> b)
 {
-  if(a.rows != b.rows and a.cols != b.cols)
+  if(a.rows != b.rows or a.cols != b.cols)
   {
     throw invalidMatrixShapeAdd();
   }
@@ -139,8 +204,47 @@ Matrix<T> operator+ (const Matrix<T>& a, const Matrix<T>& b)
 }
 
 template<typename T>
+Matrix<T> operator* (const Matrix<T>& mat, const T& factor)
+{
+  return scale(mat, factor);
+}
+
+template<typename T>
+Matrix<T> operator* (const T& factor, const Matrix<T>& mat)
+{
+  return scale(mat, factor);
+}
+
+template<typename T>
 ostream& operator<< (ostream& os, const Matrix<T>& mat)
 {
   os << mat.toString();
   return os;
 }
+
+template<typename T>
+double determinant(Matrix<T> mat)
+{
+  if(mat.rows != mat.cols)
+  {
+    throw std::invalid_argument("Non-square matrix provided to the determinant function.");
+  }
+  else
+  {
+    int size = mat.rows;
+    if(size == 2)
+    {
+      return mat[0][0] * mat[1][1] - mat[1][0] * mat[0][1];
+    }
+    else
+    {
+      double res = 0;
+      for(int i = 0; i < size; i++)
+      {
+        res += mat[0][i] * ((i % 2 == 0) ? 1 : -1) * determinant(mat.subMatRemove(0, i));
+      }
+      return res;
+    }
+  }
+}
+
