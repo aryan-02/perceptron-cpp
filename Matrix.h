@@ -25,15 +25,6 @@ struct invalidMatrixShapeAdd : public exception
    }
 };
 
-struct invalidMatrixShapeDet : public exception
-{
-   const char * what () const throw ()
-   {
-      return "Invalid Matrix Shape for Determinant";
-   }
-};
-
-
 template <typename T>
 class Matrix
 {
@@ -236,6 +227,12 @@ Matrix<T> operator+ (const Matrix<T>& a, const Matrix<T>& b)
 }
 
 template<typename T>
+Matrix<T> operator- (const Matrix<T>& a, const Matrix<T>& b)
+{
+  return add(a, scale(b, (T) -1));
+}
+
+template<typename T>
 Matrix<T> operator* (const Matrix<T>& mat, const T& factor)
 {
   return scale(mat, factor);
@@ -252,6 +249,27 @@ ostream& operator<< (ostream& os, const Matrix<T>& mat)
 {
   os << mat.toString();
   return os;
+}
+
+template<typename T>
+Matrix<T> multiplyElementWise(Matrix<T> a, Matrix<T> b)
+{
+  if(a.rows != b.rows or a.cols != b.cols)
+  {
+    throw std::invalid_argument("Matrix shape mismatch for element-wise multiplication");
+  }
+  else
+  {
+    Matrix<T> res(a.rows, a.cols);
+    for(int r = 0; r < a.rows; r++)
+    {
+      for(int c = 0; c < a.cols; c++)
+      {
+        res[r][c] = a[r][c] * b[r][c];
+      }
+    }
+    return res;
+  }
 }
 
 template<typename T>

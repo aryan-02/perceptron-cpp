@@ -65,4 +65,43 @@ class Perceptron
       return output;
     }
     
+    void train(Matrix<double> inputs, Matrix<double> target)
+    {
+      Matrix<double> hidden = weights_ih * (inputs.transpose());
+      hidden = hidden + bias_h;
+      sigmoidify(hidden);
+
+      Matrix<double> output = weights_ho * hidden;
+      output = output + bias_o;
+      sigmoidify(output);
+
+      target = target.transpose();
+      Matrix<double> output_errors = target - output;
+      Matrix<double> hidden_errors = weights_ho.transpose() * output_errors;
+
+      Matrix<double> grad = output;
+      grad.forEach([] (double& x){
+        x = x * (1-x);
+      });
+      grad = multiplyElementWise(grad, output_errors);
+      grad = grad * learning_rate;
+      
+      bias_o = bias_o + grad;
+      
+      Matrix<double> delta_weights_ho = grad * hidden.transpose();
+
+      weights_ho = weights_ho + delta_weights_ho;
+
+      Matrix<double> grad_hidden = hidden;
+      grad_hidden.forEach([] (double& x) {
+        x = x * (1 - x);
+      });
+      grad_hidden = multiplyElementWise(grad_hidden, hidden_errors);
+      grad_hidden = grad_hidden * learning_rate;
+
+      bias_h = bias_h + grad_hidden;
+      Matrix<double> delta_weights_ih = grad_hidden * inputs;
+      weights_ih = weights_ih + delta_weights_ih;
+    }
+
 };
