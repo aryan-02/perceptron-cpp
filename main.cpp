@@ -1,8 +1,16 @@
 #include <iostream>
-#include "Matrix.h"
+#include <algorithm>
+#include "Perceptron.h"
 
 using namespace std;
 
+int main()
+{
+  Perceptron nn(2, 5, 3);
+  Matrix<double> input({{1, 2}});
+  cout << nn.feedForward(input) << '\n'; 
+}
+/*
 int main()
 {
   Matrix<int> m ({{3, 2, 0}, {5, 2, 1}});
@@ -29,6 +37,8 @@ int main()
       {5, 6, 7, 8}
     }
   );
+  hello.forEach([](int& x){x += 1;});
   cout << hello.transpose() << '\n';
-}
 
+}
+*/

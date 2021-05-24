@@ -1,6 +1,13 @@
 #include <vector>
 #include <string>
+#include <functional>
+
 using namespace std;
+
+double randomDouble()
+{
+  return (double)rand() / RAND_MAX;
+}
 
 struct invalidMatrixShapeMult : public exception
 {
@@ -34,6 +41,12 @@ class Matrix
     int rows = 1;
     int cols = 1;
     vector<vector<T>> data {0};
+    Matrix()
+    {
+      rows = 0;
+      cols = 0;
+      data = {};
+    }
     Matrix(int _r, int _c)
     {
       rows = _r;
@@ -124,6 +137,25 @@ class Matrix
           }
         }
         return Matrix(res);
+      }
+    }
+
+    void randomize()
+    {
+      for(int r = 0; r < rows; r++)
+      {
+        for(int c = 0; c < cols; c++)
+        {
+          data[r][c] = 2 * randomDouble() - 1;
+        }
+      }
+    }
+
+    void forEach(std::function<void(T&)> operation)
+    {
+      for(vector<T>& row : data)
+      {
+        for_each(row.begin(), row.end(), operation);
       }
     }
 };
