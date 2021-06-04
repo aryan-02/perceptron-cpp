@@ -298,3 +298,16 @@ double determinant(Matrix<T> mat)
   }
 }
 
+template<typename T>
+T& get(vector<T> arr, int idx) 
+{
+  
+    if(idx >= 0)
+    {
+      return arr.at(idx);
+    }
+    else
+    {
+      return arr.at(arr.size() + idx);
+    }
+}

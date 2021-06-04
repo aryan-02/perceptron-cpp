@@ -11,7 +11,17 @@ void sigmoidify(Matrix<double>& mat)
   mat.forEach([](double& x) {x = sigmoid(x);});
 }
 
-class Perceptron
+double sigmoid_prime(double x)
+{
+  return sigmoid(x) * (1 - sigmoid(x));
+}
+
+void sigmoid_primeify(Matrix<double>& mat)
+{
+  mat.forEach([](double& x) {x = sigmoid_prime(x);});
+}
+
+class SingleLayerPerceptron
 {
   private:
     int input_nodes{};
@@ -27,7 +37,7 @@ class Perceptron
     
 
   public:
-    Perceptron(int _input, int _hidden, int _output, double _lr = 0.2)
+    SingleLayerPerceptron(int _input, int _hidden, int _output, double _lr = 0.2)
     {
       srand(time(NULL));
       input_nodes = _input;
@@ -104,4 +114,120 @@ class Perceptron
       weights_ih = weights_ih + delta_weights_ih;
     }
 
+};
+
+class MultiLayerPerceptron
+{
+  private:
+    int num_layers;
+    vector<int> sizes;
+    vector<Matrix<double>> biases;
+    vector<Matrix<double>> weights;
+    
+    // Constructor
+  public:
+    MultiLayerPerceptron(int _layers, vector<int> _sizes)
+    {
+      srand(time(NULL));
+      num_layers = _layers;
+      sizes = _sizes;
+           
+      if(num_layers != _sizes.size())
+      {
+        throw std::invalid_argument("Number of layers must be equal to the length of the size vector.");
+      }
+
+      if(_sizes.size() < 2)
+      {
+        throw std::invalid_argument("Multilayer perceptron must have at least two layers.");
+      }
+
+      for(int i = 1; i < num_layers; i++)
+      {
+        Matrix<double> bias{sizes[i], 1};
+        Matrix<double> weight{sizes[i], sizes[i - 1]};
+
+        bias.randomize();
+        weight.randomize();
+
+        biases.push_back(bias);
+        weights.push_back(weight);
+      }
+    }
+
+    Matrix<double> feedForward(Matrix<double> input)
+    {
+      input = input.transpose();
+      for(int i = 0; i < biases.size(); i++)
+      {
+        input = (weights[i] * input) + biases[i];
+        sigmoidify(input);
+      }
+      return input;
+    }
+
+    pair<vector<Matrix<double>>, vector<Matrix<double>>> 
+    backprop(Matrix<double> x, Matrix<double> y)
+    {
+
+      x = x.transpose();
+
+      vector<Matrix<double>> grad_b;
+      vector<Matrix<double>> grad_w;
+
+      for(const auto& b : biases)
+      {
+        Matrix<double> x{b.rows, b.cols};
+        grad_b.push_back(x);
+      }
+    
+      for(const auto& w : weights)
+      {
+        Matrix<double> x{w.rows, w.cols};
+        grad_w.push_back(x);
+      }
+      
+      // feedForward
+            
+      Matrix<double> activation = x;
+      vector<Matrix<double>> activations = {x};
+      vector<Matrix<double>> zs;
+      Matrix<double> z;
+      for(int i = 0; i < biases.size(); i++)
+      {
+        z = (weights[i] * activation) + biases[i];
+        zs.push_back(z);
+        activation = z;
+        sigmoidify(activation);
+        activations.push_back(activation);
+      }
+   
+
+      // backpropagation
+
+      // calculate output errors and gradient
+      Matrix<double> delta = activations.back() - y;
+
+      Matrix<double> temp = zs.back();
+      sigmoid_primeify(temp);
+      delta = delta * temp;
+      
+
+      grad_b.back() = delta;
+
+      grad_w.back() = delta * activations[activations.size() - 2].transpose();
+
+      // backpropagate to previous layers
+      for(int l = 2; l < num_layers; l++)
+      {
+        z = zs[zs.size() - l]; 
+        Matrix<double> sp = z;
+        sigmoid_primeify(sp);
+        delta = weights[weights.size() -l + 1].transpose() * delta;
+        delta = multiplyElementWise(delta, sp);
+        grad_b[grad_b.size() - l] = delta;
+        grad_w[grad_w.size() - l] = delta * activations[activations.size() - l - 1].transpose(); 
+      }
+      return {grad_b, grad_w};
+    }
 };

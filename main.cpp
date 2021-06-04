@@ -6,9 +6,9 @@ using namespace std;
 
 #define ITERATIONS 100000
 
-int main()
+/*int main()
 {
-  Perceptron nn(2, 5, 1);
+  SingleLayerPerceptron nn(2, 5, 1);
   Matrix<double> input({{1, 2}});
   vector<tuple<double, double, double>> training_data = {
     {0, 0, 0},
@@ -36,6 +36,8 @@ int main()
   cout << "1 xor 0: " << nn.feedForward(c);
   cout << "1 xor 1: " << nn.feedForward(d);
 }
+
+*/
 
 /*
 int main()
@@ -68,4 +70,26 @@ int main()
   cout << hello.transpose() << '\n';
 
 }
+
 */
+
+int main()
+{
+  vector<int> x = {2, 5, 1};
+  MultiLayerPerceptron nn(3, {2, 5, 1});
+  Matrix<double> i({{1, 0}});
+  vector<vector<double>> a = {{1}};
+  Matrix<double> o{a};
+  o[0][0] = 1;
+  auto res = nn.backprop(i, o);
+  for(auto i : res.first)
+  {
+    cout << i << '\n';
+  }
+  cout << '\n';
+  for(auto i : res.second)
+  {
+    cout << i << '\n';
+  }
+
+}
